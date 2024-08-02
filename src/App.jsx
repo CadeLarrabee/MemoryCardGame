@@ -6,7 +6,6 @@ import "./App.css";
 let prevClickIDs = [];
 
 function ConnectToGiphy({ setSearchResults, gameSize, searchQuery }) {
-  // Connect to Giphy and return gameSize of images to SetSearchResults.
   useEffect(() => {
     const fetchGifs = async () => {
       try {
@@ -32,15 +31,12 @@ function App() {
   const [scoreData, setScoreData] = useState(0);
   const [searchQuery, setSearchQuery] = useState("pugs");
   const [searchResults, setSearchResults] = useState(null);
-  const [maxScoreData, setMaxScoreData] = useState(0);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  const isInitialMount = useRef(true);
 
   const notify = () =>
     toast("Game ended with: " + scoreData + " points scored!");
 
-  //Debounce
-  //
-  //This debounce prevents multiple queries to GIPHY
   const debouncingTimeout = useRef(null);
 
   useEffect(() => {
@@ -59,22 +55,32 @@ function App() {
     };
   }, [searchQuery]);
 
-  //Debounce end
+  useEffect(() => {
+    // Skip the first render
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      handleGameEnd(false);
+    }
+  }, [debouncedSearchQuery]);
 
   function handleClick(id) {
     if (prevClickIDs.includes(id)) {
-      handleGameEnd();
+      handleGameEnd(true);
+    } else {
+      prevClickIDs.push(id);
+      setScoreData((prevScore) => prevScore + 1);
+      setSearchResults((prevSearch) => ShuffleArray(prevSearch));
     }
-    prevClickIDs.push(id);
-    setScoreData((prevScore) => prevScore + 1);
-    setSearchResults((prevSearch) => ShuffleArray(prevSearch));
-
     console.log(scoreData);
   }
 
-  function handleGameEnd() {
-    notify();
+  function handleGameEnd(showToast) {
+    if (showToast) {
+      notify();
+    }
     setScoreData(0);
+    prevClickIDs = [];
   }
 
   function handleSearchChange(event) {
@@ -91,7 +97,6 @@ function App() {
     setDebouncedSearchQuery(searchQuery);
   }
 
-  // Generate the page
   return (
     <>
       <div className="PageWrapper">
@@ -163,8 +168,6 @@ function GenerateCard({ cardData, id, onClick }) {
 }
 
 function ShuffleArray(unshuffled) {
-  // Taking in an array, return it shuffled.
-
   let shuffled = unshuffled
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
