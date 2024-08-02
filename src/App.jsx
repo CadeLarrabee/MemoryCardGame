@@ -19,9 +19,20 @@ function ConnectToGiphy({ setSearchResults, gameSize }) {
     };
 
     fetchGifs();
+    console.log("Called Fetch");
   }, []);
 
   return null;
+}
+
+function handleClick() {
+  setScoreData((prevScore) => prevScore + 1);
+  setSearchResults((prevSearch) => ShuffleArray(prevSearch));
+  console.log(scoreData);
+}
+
+function handleGameEnd() {
+  setScoreData = () => 0;
 }
 
 function App() {
@@ -41,17 +52,13 @@ function App() {
           setSearchResults={setSearchResults}
           gameSize={gameSize}
         />
-        <GenerateGame
-          gameSize={gameSize}
-          searchResults={searchResults}
-          OnClick={handleClick}
-        />
+        <GenerateGame gameSize={gameSize} searchResults={searchResults} />
       </div>
     </>
   );
 }
 
-function GenerateGame({ gameSize, searchResults, onClick }) {
+function GenerateGame({ gameSize, searchResults }) {
   let gameCards = null;
   if (searchResults) {
     gameCards = searchResults
@@ -60,25 +67,32 @@ function GenerateGame({ gameSize, searchResults, onClick }) {
         <GenerateCard
           key={index}
           cardData={result.images.original.url}
-          onClick={onClick}
+          id={result.id}
         />
       ));
   }
 
   return <div className="GameWrapper">{gameCards}</div>;
 }
-function GenerateCard({ cardData, onClick }) {
+function GenerateCard({ cardData, id }) {
   return (
     <div className="CardWrapper">
-      <img src={cardData} alt="Giphy" onClick={onClick} />
+      <img src={cardData} alt="Giphy" onClick={handleClick(id)} />
     </div>
   );
 }
-function handleClick() {
-  setScoreData = (prevScore) => prevScore + 1;
-}
-function handleGameEnd() {
-  setScoreData = () => 0;
+function ShuffleArray(unshuffled) {
+  //Taking in an array, return it shuffled.
+
+  let shuffled = unshuffled
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+
+  console.log(unshuffled);
+  console.log(shuffled);
+
+  return shuffled;
 }
 
 export default App;
